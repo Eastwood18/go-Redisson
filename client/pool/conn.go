@@ -3,7 +3,11 @@ package pool
 import (
 	"bufio"
 	"context"
+	"errors"
+	"fmt"
+	"log"
 	"net"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -123,4 +127,36 @@ func (cn *Conn) deadline(ctx context.Context, timeout time.Duration) time.Time {
 	}
 
 	return noDeadline
+}
+
+func (cn *Conn) Clean() {
+	cn.rd.Reset(cn.netConn)
+}
+func (cn *Conn) Do(ctx context.Context, command string, options ...string) (result string, err error) {
+	opt := strings.Builder{}
+	for _, option := range options {
+		opt.WriteByte(' ')
+		opt.WriteString(option)
+	}
+	if err != nil {
+		return "", err
+	}
+	rd, _ := cn.Reader(), cn.Writer()
+	defer cn.Clean()
+
+	_, err = cn.Write([]byte(fmt.Sprint(command, opt.String(), " \r\n")))
+	if err != nil {
+		return "", err
+	}
+	line, _, err := rd.ReadLine()
+	fmt.Println(string(line))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	switch line[0] {
+	case '-':
+		return "", errors.New(string(line[1:]))
+	default:
+		return string(line[1:]), nil
+	}
 }

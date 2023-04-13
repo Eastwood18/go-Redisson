@@ -135,6 +135,7 @@ func (c *Client) initConn(ctx context.Context, cn *pool.Conn) error {
 	cn.Write([]byte(fmt.Sprintf("auth %s\r\n", password)))
 	cn.Write([]byte("ping\r\n"))
 	reader := cn.Reader()
+	defer cn.Clean()
 	line, _, err := reader.ReadLine()
 	if err != nil {
 		log.Fatalln(err)

@@ -11,7 +11,7 @@ func TestClient(t *testing.T) {
 		Addr:     "127.0.0.1:6379",
 		Password: "123456",
 		DB:       0})
-	s, err := client.Set("test", "test")
+	s, err := client.Set("test1", "test1")
 	if err != nil {
 		fmt.Println(err)
 	}
